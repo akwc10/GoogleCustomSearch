@@ -1,10 +1,10 @@
 package api
 
-import core.CustomSearchEngineResultsDomainModel
+import core.CustomSearchEngineResultDomainModel
 
-fun customSearchEngineResultTO(customSearchEngineResult: api.CustomSearchEngineResult): CustomSearchEngineResultsDomainModel =
-    CustomSearchEngineResultsDomainModel(items = customSearchEngineResult.items.map { item ->
-        CustomSearchEngineResultsDomainModel.Item(
+fun customSearchEngineResultTO(customSearchEngineResult: api.CustomSearchEngineResult): CustomSearchEngineResultDomainModel =
+    CustomSearchEngineResultDomainModel(items = customSearchEngineResult.items.map { item ->
+        CustomSearchEngineResultDomainModel.Item(
             cacheId = item.cacheId,
             displayLink = item.displayLink,
             formattedUrl = item.formattedUrl,
@@ -13,9 +13,9 @@ fun customSearchEngineResultTO(customSearchEngineResult: api.CustomSearchEngineR
             htmlTitle = item.htmlTitle,
             kind = item.kind,
             link = item.link,
-            pageMap = CustomSearchEngineResultsDomainModel.Item.PageMap(
+            pageMap = CustomSearchEngineResultDomainModel.Item.PageMap(
                 metaTags = item.pageMap.metaTags.map { metaTag ->
-                    CustomSearchEngineResultsDomainModel.Item.PageMap.MetaTag(
+                    CustomSearchEngineResultDomainModel.Item.PageMap.MetaTag(
                         referrer = metaTag.referrer,
                         google = metaTag.google,
                         viewport = metaTag.viewport,
@@ -23,14 +23,14 @@ fun customSearchEngineResultTO(customSearchEngineResult: api.CustomSearchEngineR
                     )
                 },
                 place = item.pageMap.place?.map { place ->
-                    CustomSearchEngineResultsDomainModel.Item.PageMap.Place(
+                    CustomSearchEngineResultDomainModel.Item.PageMap.Place(
                         name = place.name,
                         image = place.image,
                         description = place.description
                     )
                 },
                 cseImage = item.pageMap.cse_image?.map { cseImage ->
-                    CustomSearchEngineResultsDomainModel.Item.PageMap.CseImage(
+                    CustomSearchEngineResultDomainModel.Item.PageMap.CseImage(
                         src = cseImage.src
                     )
                 }

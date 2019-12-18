@@ -2,7 +2,7 @@ package core
 
 import java.io.Serializable
 
-data class CustomSearchEngineResultsDomainModel(val items: List<Item>) : Serializable {
+data class CustomSearchEngineResultDomainModel(val items: List<Item>) : Serializable {
     data class Item(
         val cacheId: String,
         val displayLink: String,

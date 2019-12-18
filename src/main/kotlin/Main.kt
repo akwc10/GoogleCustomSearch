@@ -1,5 +1,6 @@
 import api.CustomSearchEngineApiService
 import api.customSearchEngineResultTO
+import core.CustomSearchEngineResultDomainModel
 import mu.KotlinLogging
 import java.io.File
 
@@ -12,6 +13,7 @@ import java.io.File
  * with a presenter and a provider
  * use retrofit with rxjava adapter
  * https://developers.google.com/custom-search/v1/using_rest
+TODO()
 Very procedural
 You need to invert your thinking
 You don't order it to do something
@@ -24,25 +26,45 @@ And put that request single behind a nice function
 private val logger = KotlinLogging.logger {}
 
 fun main() {
-    val customSearchEngineResultSingle =
-        CustomSearchEngineApiService.createApiService().getCustomSearchEngineResult("monkey").retry(3).blockingGet()
-    val customSearchEngineResultsDomainModel = customSearchEngineResultTO(customSearchEngineResultSingle)
-//    customSearchEngineResultsDomainModel.items.forEachIndexed { index, item ->  println("$index: $item")}
+    val quit = ":q"
+    val pathName = "${System.getenv("PWD")}/Output.htm"
 
+    while (true) {
+        println("Input query or $quit to exit")
+        val query = readLine()
+        if (query == quit) break
+        if (!query.isNullOrEmpty()) {
+            writeToFile(pathName, formatHtml(customSearchEngineResultDomainModel(query)))
+            openFileInChrome(pathName)
+        }
+    }
+}
+
+private fun customSearchEngineResultDomainModel(query: String) =
+    customSearchEngineResultTO(customSearchEngineResultSingle(query))
+
+//TODO(Error handling)
+//TODO(Do not use blockingGet(). Imperative!)
+private fun customSearchEngineResultSingle(query: String) =
+    CustomSearchEngineApiService
+        .createApiService()
+        .getCustomSearchEngineResult(query)
+//        .doOnError()
+        .retry(3)
+        .blockingGet()
+
+private fun formatHtml(customSearchEngineResultDomainModel: CustomSearchEngineResultDomainModel): String {
     var html = """
         <!DOCTYPE html>
         <html>
     """.trimIndent()
-    customSearchEngineResultsDomainModel.items.forEach { item ->
+    customSearchEngineResultDomainModel.items.forEach { item ->
         html += """
             <p><a href="${item.link}">${item.htmlTitle}</a><br><font color="green">${item.htmlFormattedUrl}</font><br>${item.htmlSnippet}</p>
         """.trimIndent()
     }
     html += "</html>"
-    val pathName = "${System.getenv("PWD")}/Output.htm"
-    writeToFile(pathName, html)
-    openFileInChrome(pathName)
-
+    return html
 }
 
 private fun openFileInChrome(pathName: String) {

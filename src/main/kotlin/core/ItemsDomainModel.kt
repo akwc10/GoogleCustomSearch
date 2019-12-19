@@ -2,9 +2,9 @@ package core
 
 import java.io.Serializable
 
-data class CustomSearchEngineResultDomainModel(val items: List<Item>) : Serializable {
+data class ItemsDomainModel(val items: List<Item>) : Serializable {
     data class Item(
-        val cacheId: String,
+        val cacheId: String?,
         val displayLink: String,
         val formattedUrl: String,
         val htmlFormattedUrl: String,
@@ -12,12 +12,12 @@ data class CustomSearchEngineResultDomainModel(val items: List<Item>) : Serializ
         val htmlTitle: String,
         val kind: String,
         val link: String,
-        val pageMap: PageMap,
+        val pageMap: PageMap?,
         val snippet: String,
         val title: String
     ) : Serializable {
         data class PageMap(
-            val metaTags: List<MetaTag>,
+            val metaTags: List<MetaTag>?,
             val place: List<Place>?,
             val cseImage: List<CseImage>?
         ) : Serializable {
@@ -38,6 +38,5 @@ data class CustomSearchEngineResultDomainModel(val items: List<Item>) : Serializ
                 val src: String
             )
         }
-
     }
 }

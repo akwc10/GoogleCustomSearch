@@ -27,7 +27,7 @@ data class CustomSearchEngineResult(
     @JsonClass(generateAdapter = true)
     data class Item(
         @Json(name = "cacheId")
-        val cacheId: String,
+        val cacheId: String?,
         @Json(name = "displayLink")
         val displayLink: String,
         @Json(name = "formattedUrl")
@@ -43,7 +43,7 @@ data class CustomSearchEngineResult(
         @Json(name = "link")
         val link: String,
         @Json(name = "pagemap")
-        val pageMap: PageMap,
+        val pageMap: PageMap?,
         @Json(name = "snippet")
         val snippet: String,
         @Json(name = "title")
@@ -52,7 +52,7 @@ data class CustomSearchEngineResult(
         @JsonClass(generateAdapter = true)
         data class PageMap(
             @Json(name = "metatags")
-            val metaTags: List<MetaTag>,
+            val metaTags: List<MetaTag>?,
             @Json(name = "place")
             val place: List<Place>?,
             @Json(name = "cse_image")

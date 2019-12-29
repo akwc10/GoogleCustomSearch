@@ -103,7 +103,7 @@ data class CustomSearchEngineResult(
     @JsonClass(generateAdapter = true)
     data class Queries(
         @Json(name = "nextPage")
-        val nextPage: List<NextPage>,
+        val nextPage: List<NextPage>?,
         @Json(name = "request")
         val request: List<Request>
     ) {

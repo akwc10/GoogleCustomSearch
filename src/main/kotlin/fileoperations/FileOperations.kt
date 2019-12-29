@@ -2,17 +2,18 @@ package fileoperations
 
 import java.io.File
 
-fun writeToFile(pathName: String, fileContent: String) {
-    File(pathName).bufferedWriter().use { out -> out.write(fileContent) }
+fun String.writeToFile(pathName: String): String {
+    File(pathName).bufferedWriter().use { out -> out.write(this) }
+    return pathName
 }
 
-fun openFileInChrome(pathName: String) {
+fun String.openFileInChromeTab() {
     Runtime.getRuntime().exec(
         arrayOf(
             "/usr/bin/open",
             "-a",
             "/Applications/Google Chrome.app",
-            pathName
+            this
         )
     )
 }

@@ -1,9 +1,12 @@
 import api.CustomSearchEngineApiService
-import api.getItemsTO
-import fileoperations.openFileInChrome
+import api.CustomSearchEngineResult
+import api.itemsTo
+import core.formatAsHtml
+import fileoperations.openFileInChromeTab
 import fileoperations.writeToFile
-import htmloperations.formatAsHtml
+import io.reactivex.disposables.Disposable
 import mu.KotlinLogging
+import java.io.IOException
 
 /**
  * Command line app where you insert a query,
@@ -28,23 +31,34 @@ private val logger = KotlinLogging.logger {}
 
 fun main() {
     val quit = ":q"
+    val pathName = "${System.getenv("PWD")}/Output.htm"
+    lateinit var disposable: Disposable
+
     while (true) {
         println("Input query or $quit to exit")
         val query = readLine()
         if (query == quit) break
-        if (!query.isNullOrEmpty()) runQuery(query)
+        if (!query.isNullOrEmpty()) {
+            val apiService = CustomSearchEngineApiService.createApiService()
+            disposable = runQuery(query, apiService, pathName)
+        }
     }
+    tearDown(disposable)
 }
 
-//TODO(Error handling)
-private fun runQuery(query: String) =
-    CustomSearchEngineApiService
-        .createApiService()
+private fun runQuery(query: String, apiService: CustomSearchEngineApiService, pathName: String) =
+    apiService
         .getCustomSearchEngineResult(query)
-        .doOnError { println("TODO Best practice???") }
+        .doOnError { throwable -> println(if (throwable is IOException) "Network error" else throwable.message) }
         .retry(3)
         .subscribe { customSearchEngineResult ->
-            val pathName = "${System.getenv("PWD")}/Output.htm"
-            writeToFile(pathName, formatAsHtml(getItemsTO(customSearchEngineResult.items)))
-            openFileInChrome(pathName)
+            showResultsInChromeTab(customSearchEngineResult, pathName)
         }
+
+private fun showResultsInChromeTab(customSearchEngineResult: CustomSearchEngineResult, pathName: String) {
+    customSearchEngineResult.items.itemsTo().formatAsHtml().writeToFile(pathName).openFileInChromeTab()
+}
+
+private fun tearDown(disposable: Disposable) {
+    if (!disposable.isDisposed) disposable.dispose()
+}

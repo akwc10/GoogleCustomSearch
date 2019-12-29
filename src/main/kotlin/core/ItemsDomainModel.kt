@@ -40,3 +40,17 @@ data class ItemsDomainModel(val items: List<Item>) : Serializable {
         }
     }
 }
+
+fun ItemsDomainModel.formatAsHtml(): String {
+    var html = """
+        <!DOCTYPE html>
+        <html>
+    """.trimIndent()
+    items.forEach { item ->
+        html += """
+            <p><a href="${item.link}">${item.htmlTitle}</a><br><font color="green">${item.htmlFormattedUrl}</font><br>${item.htmlSnippet}</p>
+        """.trimIndent()
+    }
+    html += "</html>"
+    return html
+}

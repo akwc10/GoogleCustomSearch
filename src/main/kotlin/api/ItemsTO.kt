@@ -2,7 +2,7 @@ package api
 
 import core.ItemsDomainModel
 
-fun List<CustomSearchEngineResult.Item>.itemsTo() =
+fun List<CustomSearchEngineResult.Item>.getItemsTo() =
     ItemsDomainModel(items = map { item ->
         ItemsDomainModel.Item(
             cacheId = item.cacheId,

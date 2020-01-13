@@ -1,6 +1,6 @@
 import api.CustomSearchEngineApiService
 import api.CustomSearchEngineResult
-import api.itemsTo
+import api.getItemsTo
 import core.formatAsHtml
 import fileoperations.openFileInChromeTab
 import fileoperations.writeToFile
@@ -19,7 +19,13 @@ class CustomSearchEngine {
     init {
         subjectCSE.subscribe {
             val apiService = CustomSearchEngineApiService.createApiService()
-            disposable = runQuery(input, apiService, pathName)
+            disposable = apiService
+                .getCustomSearchEngineResult(input)
+                .doOnError { throwable -> println(if (throwable is IOException) "Network error" else throwable.message) }
+                .retry(3)
+                .subscribe { customSearchEngineResult ->
+                    showResultsInChromeTab(customSearchEngineResult, pathName)
+                }
         }
     }
 
@@ -35,17 +41,8 @@ class CustomSearchEngine {
         tearDown(disposable)
     }
 
-    private fun runQuery(query: String, apiService: CustomSearchEngineApiService, pathName: String) =
-        apiService
-            .getCustomSearchEngineResult(query)
-            .doOnError { throwable -> println(if (throwable is IOException) "Network error" else throwable.message) }
-            .retry(3)
-            .subscribe { customSearchEngineResult ->
-                showResultsInChromeTab(customSearchEngineResult, pathName)
-            }
-
     private fun showResultsInChromeTab(customSearchEngineResult: CustomSearchEngineResult, pathName: String) {
-        customSearchEngineResult.items.itemsTo().formatAsHtml().writeToFile(pathName).openFileInChromeTab()
+        customSearchEngineResult.items.getItemsTo().formatAsHtml().writeToFile(pathName).openFileInChromeTab()
     }
 
     private fun tearDown(disposable: Disposable) {

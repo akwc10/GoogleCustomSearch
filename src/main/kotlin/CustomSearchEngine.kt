@@ -13,20 +13,22 @@ class CustomSearchEngine {
     private val quit = ":q"
     private val pathName = "${System.getenv("PWD")}/Output.htm"
     private var input = ""
-    private val subjectCSE: Subject<CustomSearchEngine> = PublishSubject.create()
+    private val subjectInput: Subject<String> = PublishSubject.create()
     private lateinit var disposable: Disposable
 
     init {
-        subjectCSE.subscribe {
-            val apiService = CustomSearchEngineApiService.createApiService()
-            disposable = apiService
-                .getCustomSearchEngineResult(input)
-                .doOnError { throwable -> println(if (throwable is IOException) "Network error" else throwable.message) }
-                .retry(3)
-                .subscribe { customSearchEngineResult ->
-                    showResultsInChromeTab(customSearchEngineResult, pathName)
-                }
-        }
+        subjectInput
+            .filter { input -> input.isNotBlank() }
+            .subscribe { input ->
+                val apiService = CustomSearchEngineApiService.createApiService()
+                disposable = apiService
+                    .getCustomSearchEngineResult(input)
+                    .doOnError { throwable -> println(if (throwable is IOException) "Network error" else throwable.message) }
+                    .retry(3)
+                    .subscribe { customSearchEngineResult ->
+                        showResultsInChromeTab(customSearchEngineResult, pathName)
+                    }
+            }
     }
 
     fun handleInput() {
@@ -34,9 +36,7 @@ class CustomSearchEngine {
             println("Input query or $quit to exit")
             input = readLine().toString()
             if (input == quit) break
-            if (input.isNotBlank()) {
-                subjectCSE.onNext(this)
-            }
+            subjectInput.onNext(input)
         }
         tearDown(disposable)
     }

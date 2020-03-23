@@ -1,51 +1,54 @@
 import api.CustomSearchEngineApiService
-import api.CustomSearchEngineResult
-import api.getItemsTo
-import core.formatAsHtml
-import fileoperations.openFileInChromeTab
-import fileoperations.writeToFile
-import io.reactivex.disposables.Disposable
-import io.reactivex.subjects.PublishSubject
-import io.reactivex.subjects.Subject
+import chromeoperations.showResultsInChromeTab
+import flowableoperations.addRetryWithBackOff
+import io.reactivex.Observable
 import java.io.IOException
+import kotlin.system.exitProcess
 
 class CustomSearchEngine {
     private val quit = ":q"
     private val pathName = "${System.getenv("PWD")}/Output.htm"
-    private var input = ""
-    private val subjectInput: Subject<String> = PublishSubject.create()
-    private lateinit var disposable: Disposable
 
     init {
-        subjectInput
-            .filter { input -> input.isNotBlank() }
-            .subscribe { input ->
-                val apiService = CustomSearchEngineApiService.createApiService()
-                disposable = apiService
-                    .getCustomSearchEngineResult(input)
-                    .doOnError { throwable -> println(if (throwable is IOException) "Network error" else throwable.message) }
-                    .retry(3)
-                    .subscribe { customSearchEngineResult ->
-                        showResultsInChromeTab(customSearchEngineResult, pathName)
-                    }
-            }
-    }
-
-    fun handleInput() {
         while (true) {
-            println("Input query or $quit to exit")
-            input = readLine().toString()
-            if (input == quit) break
-            subjectInput.onNext(input)
+            createInputObservable()
+                .subscribe { input ->
+                    val apiService = CustomSearchEngineApiService.createApiService()
+                    apiService
+                        .getCustomSearchEngineResult(input)
+                        .toFlowable()
+                        .addRetryWithBackOff()
+                        .subscribe { customSearchEngineResult ->
+                            showResultsInChromeTab(customSearchEngineResult, pathName)
+                        }
+                }
         }
-        tearDown(disposable)
     }
 
-    private fun showResultsInChromeTab(customSearchEngineResult: CustomSearchEngineResult, pathName: String) {
-        customSearchEngineResult.items.getItemsTo().formatAsHtml().writeToFile(pathName).openFileInChromeTab()
-    }
+    private fun createInputObservable(): Observable<String> =
+        Observable.create<String> { emitter ->
+            println("Input query or $quit to exit")
+            val input = readLine().toString()
+            if (input != quit) emitter.onNext(input) else throw Exception()
+        }.doOnError {
+            exitProcess(0)
+        }.filter { input -> input.isNotBlank() }
 
-    private fun tearDown(disposable: Disposable) {
-        if (!disposable.isDisposed) disposable.dispose()
+    private fun handleInputOld() {
+        while (true) {
+            createInputObservable()
+                .subscribe { input ->
+                    val apiService = CustomSearchEngineApiService.createApiService()
+                    apiService
+                        .getCustomSearchEngineResult(input)
+                        .doOnError { throwable ->
+                            println(if (throwable is IOException) "Network error" else throwable.message)
+                        }
+                        .retry(3)
+                        .subscribe { customSearchEngineResult ->
+                            showResultsInChromeTab(customSearchEngineResult, pathName)
+                        }
+                }
+        }
     }
 }

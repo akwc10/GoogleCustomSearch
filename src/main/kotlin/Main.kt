@@ -18,5 +18,5 @@ And put that request single behind a nice function
  **/
 
 fun main() {
-    CustomSearchEngine().handleInput()
+    CustomSearchEngine()
 }

@@ -3,7 +3,6 @@ package flowableoperations
 import io.reactivex.Flowable
 import io.reactivex.functions.BiFunction
 import java.io.IOException
-import java.net.UnknownHostException
 import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 import kotlin.system.exitProcess
@@ -15,7 +14,7 @@ fun <T> Flowable<T>.addRetryWithBackOff(retriesLimit: Int = 3, initialDelay: Dou
         errors.zipWith(
             Flowable.range(1, retriesLimit + 1),
             BiFunction<Throwable, Int, Int> { error: Throwable, retryCount: Int ->
-                if (error !is UnknownHostException || retryCount > retriesLimit) {
+                if (retryCount > retriesLimit) {
                     println(if (error is IOException) "No network error" else error.localizedMessage)
                     exitProcess(0)
                 } else {
